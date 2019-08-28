@@ -34,28 +34,34 @@ LABEL summary="$SUMMARY" \
       usage="s2i build https://github.com/sclorg/s2i-python-container.git --context-dir=3.6/test/setup-test-app/ centos/python-36-centos7 python-sample-app" \
       maintainer="SoftwareCollections.org <sclorg@redhat.com>"
 
+ADD oracle-instantclient*.rpm /tmp/
+
 RUN INSTALL_PKGS="rh-python36 rh-python36-python-devel rh-python36-python-setuptools rh-python36-python-pip nss_wrapper \
         httpd24 httpd24-httpd-devel httpd24-mod_ssl httpd24-mod_auth_kerb httpd24-mod_ldap \
         httpd24-mod_session atlas-devel gcc-gfortran libffi-devel libtool-ltdl enchant wget libaio-devel" && \
     yum install -y centos-release-scl && \
+    yum -y install /tmp/oracle-instantclient*.rpm && \
     yum -y --setopt=tsflags=nodocs install --enablerepo=centosplus $INSTALL_PKGS && \
     rpm -V $INSTALL_PKGS && \
     # Remove centos-logos (httpd dependency) to keep image size smaller.
     rpm -e --nodeps centos-logos && \
-    yum -y clean all --enablerepo='*'
+    rm -f /tmp/oracle-instantclient*.rpm && \
+    yum -y clean all --enablerepo='*' && \
+    echo /usr/lib/oracle/12.2/client64/lib > /etc/ld.so.conf.d/oracle-instantclient12.2.conf && \
+    ldconfig
 
 # install the Oracle dependencies./tmp/oracle_fdw-ORACLE_FDW_2_0_0/oracle_fdw.control
-COPY oracle-instantclient12.2-basic-12.2.0.1.0-1.x86_64.rpm /tmp/oraclelibs/oracle-instantclient12.2-basic-12.2.0.1.0-1.x86_64.rpm
-COPY oracle-instantclient12.2-devel-12.2.0.1.0-1.x86_64.rpm /tmp/oraclelibs/oracle-instantclient12.2-devel-12.2.0.1.0-1.x86_64.rpm
+#COPY oracle-instantclient12.2-basic-12.2.0.1.0-1.x86_64.rpm /tmp/oraclelibs/oracle-instantclient12.2-basic-12.2.0.1.0-1.x86_64.rpm
+#COPY oracle-instantclient12.2-devel-12.2.0.1.0-1.x86_64.rpm /tmp/oraclelibs/oracle-instantclient12.2-devel-12.2.0.1.0-1.x86_64.rpm
 
-RUN cd /tmp/oraclelibs && \
-    rpm -Uvh oracle-instantclient12.2-basic-12.2.0.1.0-1.x86_64.rpm && \
-    rpm -Uvh oracle-instantclient12.2-devel-12.2.0.1.0-1.x86_64.rpm
+#RUN cd /tmp/oraclelibs && \
+#    rpm -Uvh oracle-instantclient12.2-basic-12.2.0.1.0-1.x86_64.rpm && \
+#    rpm -Uvh oracle-instantclient12.2-devel-12.2.0.1.0-1.x86_64.rpm
 
 # set oracle env vars
 ENV ORACLE_HOME /usr/lib/oracle/12.2/client64/lib
 ENV LD_LIBRARY_PATH /usr/lib/oracle/12.2/client64/lib:${LD_LIBRARY_PATH}
-
+ENV PATH=$PATH:/usr/lib/oracle/12.2/client64/bin
 
 # Copy the S2I scripts from the specific language image to $STI_SCRIPTS_PATH.
 COPY ./s2i/bin/ $STI_SCRIPTS_PATH
