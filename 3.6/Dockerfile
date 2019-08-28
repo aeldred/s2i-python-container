@@ -34,7 +34,8 @@ LABEL summary="$SUMMARY" \
       usage="s2i build https://github.com/sclorg/s2i-python-container.git --context-dir=3.6/test/setup-test-app/ centos/python-36-centos7 python-sample-app" \
       maintainer="SoftwareCollections.org <sclorg@redhat.com>"
 
-ADD oracle-instantclient*.rpm /tmp/
+ADD oracle-instantclient12.2-basic-12.2.0.1.0-1.x86_64.rpm /tmp/
+ADD oracle-instantclient12.2-devel-12.2.0.1.0-1.x86_64.rpm /tmp/
 
 RUN INSTALL_PKGS="rh-python36 rh-python36-python-devel rh-python36-python-setuptools rh-python36-python-pip nss_wrapper \
         httpd24 httpd24-httpd-devel httpd24-mod_ssl httpd24-mod_auth_kerb httpd24-mod_ldap \
